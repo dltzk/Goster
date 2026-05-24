@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Гостер</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero hero--simple">
+      <div class="hero__content">
+        <h1>Гостер</h1>
+        <p class="lead">
+          Сервис для оформления библиографических записей по ГОСТ:
+          вручную через конструктор или автоматически через умный разбор ссылки.
+        </p>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Режимы приложения">
+      <button class="tab tab--active" data-tab="constructor">Конструктор записи</button>
+      <button class="tab" data-tab="parser">Умный разбор</button>
+    </nav>
+
+    <section class="card card--compact">
+      <div class="card__header">
+        <h2>Стиль оформления</h2>
+        <select id="citation-style">
+          <option value="gost_ru">ГОСТ / русский</option>
+          <option value="english">English references</option>
+        </select>
+      </div>
+      <p class="helper">
+        Выберите, в каком формате собирать итоговую ссылку. Русский режим сохраняет ГОСТ-вывод,
+        английский использует метки вроде <code>Vol.</code>, <code>P.</code> и <code>visited on</code>.
+      </p>
+    </section>
+
+    <main>
+      <section class="panel panel--active" id="constructor">
+        <div class="panel-grid">
+          <form id="format-form" class="card">
+            <div class="card__header">
+              <h2>Поля источника</h2>
+              <select id="source-type" name="source_type">
+                <option value="book">Книга</option>
+                <option value="article">Статья</option>
+                <option value="website">Сайт</option>
+              </select>
+            </div>
+
+            <div class="form-grid">
+              <label data-kind="book article">
+                <span>Авторы</span>
+                <input name="authors" placeholder="Иванов Иван Иванович; Петров Петр Петрович">
+              </label>
+              <label data-common>
+                <span>Название</span>
+                <input name="title" placeholder="Основы библиографического описания">
+              </label>
+              <label data-kind="book">
+                <span>Подзаголовок</span>
+                <input name="subtitle" placeholder="учебное пособие">
+              </label>
+              <label data-kind="book">
+                <span>Переводчик</span>
+                <input name="translator" placeholder="Иванов Иван Иванович">
+              </label>
+              <label data-kind="book">
+                <span>Язык оригинала</span>
+                <input name="translation_from" placeholder="англ.">
+              </label>
+              <label data-kind="book">
+                <span>Город</span>
+                <input name="city" placeholder="Москва">
+              </label>
+              <label data-kind="book">
+                <span>Издательство</span>
+                <input name="publisher" placeholder="Инфра-М">
+              </label>
+              <label data-kind="book article website">
+                <span>Год</span>
+                <input name="year" placeholder="2024">
+              </label>
+              <label data-kind="book">
+                <span>ISBN</span>
+                <input name="isbn" placeholder="978-5-7996-1771-4">
+              </label>
+              <label data-kind="book">
+                <span>Количество страниц</span>
+                <input name="pages" placeholder="256">
+              </label>
+              <label data-kind="article">
+                <span>Журнал</span>
+                <input name="journal" placeholder="Вестник цифровых технологий">
+              </label>
+              <label data-kind="article">
+                <span>Том / выпуск</span>
+                <input name="volume" placeholder="Vol. 4, issue 2">
+              </label>
+              <label data-kind="article">
+                <span data-field-label="issue">Номер</span>
+                <input name="issue" placeholder="3">
+              </label>
+              <label data-kind="article">
+                <span>ISSN</span>
+                <input name="issn" placeholder="2319-4197">
+              </label>
+              <label data-kind="article">
+                <span>DOI</span>
+                <input name="doi" placeholder="10.9790/4200-04238290">
+              </label>
+              <label data-kind="article">
+                <span>Страницы</span>
+                <input name="pages" placeholder="15-22">
+              </label>
+              <label data-kind="website">
+                <span>Название сайта</span>
+                <input name="site_name" placeholder="КиберЛенинка">
+              </label>
+              <label data-kind="book website">
+                <span>URL</span>
+                <input name="url" placeholder="https://example.org/article">
+              </label>
+              <label data-kind="book website">
+                <span>Дата обращения</span>
+                <input name="access_date" placeholder="30.03.2026">
+              </label>
+            </div>
+          </form>
+
+          <section class="card output-card">
+            <div class="card__header">
+              <h2>Сформированная ссылка</h2>
+            </div>
+            <textarea id="formatted-output" readonly placeholder="Здесь появится результат по ГОСТу"></textarea>
+            <button id="copy-output" class="ghost-button" type="button">Скопировать</button>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="parser">
+        <div class="panel-grid panel-grid--parser">
+          <section class="card">
+            <div class="card__header">
+              <h2>Ссылка или список ссылок</h2>
+              <button id="parse-button" class="accent-button" type="button">Разобрать</button>
+            </div>
+            <p class="helper">
+              Вставьте URL или готовые библиографические строки. Сервис попробует извлечь поля источника,
+              а затем соберет итоговую запись тем же алгоритмом, что и в конструкторе.
+            </p>
+            <textarea id="raw-input" placeholder="https://example.org/article&#10;Иванов И. И. Название статьи // Научный журнал. - 2024. - № 3. - С. 10-18."></textarea>
+          </section>
+
+          <section class="card">
+            <div class="card__header">
+              <h2>Результат обработки</h2>
+            </div>
+            <textarea id="parsed-output" readonly placeholder="Тут появятся обработанные ссылки"></textarea>
+            <div id="parse-meta" class="parse-meta"></div>
+            <div id="recognized-fields" class="recognized-fields"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
